@@ -1,14 +1,14 @@
 from app.core.logger import setup_logger
-from app.core.config import settings
+from app.monitors.job_monitor import JobMonitor
 
 def main():
     logger = setup_logger()
+    logger.info("Starting static scraping test")
 
-    logger.info("Starting application")
-    logger.info(f"Environment: {settings.ENV}")
+    monitor = JobMonitor("https://realpython.github.io/fake-jobs/")
+    jobs = monitor.run()
 
-    # Placeholder for future pipeline boot
-    logger.info("SWMAP is running")
+    logger.info(f"Scraped {len(jobs)} jobs")
 
 if __name__ == "__main__":
     main()
