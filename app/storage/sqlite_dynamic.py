@@ -1,17 +1,17 @@
 from .base_storage import BaseStorage
 from datetime import datetime, timezone
 
-class StaticStorage(BaseStorage):
+class DynamicStorage(BaseStorage):
     def __init__(self):
-        super().__init__("data/static_data.db")
+        super().__init__("data/dynamic_data.db")
         self._create_tables()
 
     def _create_tables(self):
         self.conn.execute("""
-            CREATE TABLE IF NOT EXISTS job_snapshots (
+            CREATE TABLE IF NOT EXISTS dynamic_jobs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
-                company TEXT NOT NULL,
+                price TEXT NOT NULL,
                 scraped_at TEXT NOT NULL
             );
         """)
@@ -19,7 +19,7 @@ class StaticStorage(BaseStorage):
 
     def insert_jobs(self, jobs):
         now = datetime.now(timezone.utc).isoformat()
-        query = "INSERT INTO job_snapshots (title, company, scraped_at) VALUES (?, ?, ?)"
-        rows = [(j["title"], j["company"], now) for j in jobs]
+        query = "INSERT INTO dynamic_jobs (title, price, scraped_at) VALUES (?, ?, ?)"
+        rows = [(j["title"], j["price"], now) for j in jobs]
         self.conn.executemany(query, rows)
         self.conn.commit()

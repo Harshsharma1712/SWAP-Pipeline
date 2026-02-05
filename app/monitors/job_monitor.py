@@ -6,16 +6,18 @@ from app.processors.cleaner import (
     validate_required_fields,
     normalize_text_fields,
 )
-from app.storage.sqlite_static import SQLiteStorage
+from app.storage.sqlite_static import StaticStorage
 
 class JobMonitor:
     def __init__(self, url: str):
         self.scraper = StaticScraper(url)
+
+        self.storage  = StaticStorage()
     
         self.cleaner = DataCleaner(steps=[
-                lambda d: remove_duplicates(d, ["title", "price"]),
-                lambda d: validate_required_fields(d, ["title", "price"]),
-                lambda d: normalize_text_fields(d, ["title", "price"]),
+                lambda d: remove_duplicates(d, ["title", "company"]),
+                lambda d: validate_required_fields(d, ["title", "company"]),
+                lambda d: normalize_text_fields(d, ["title", "company"]),
             ])
 
     def run(self):
@@ -33,7 +35,6 @@ class JobMonitor:
 
         save_to_csv("jobs.csv", jobs)
 
-        storage = SQLiteStorage()
-        storage.insert_jobs(jobs)
+        self.storage.insert_jobs(jobs)
 
         return jobs

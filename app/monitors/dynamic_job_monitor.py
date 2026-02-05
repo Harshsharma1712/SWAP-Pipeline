@@ -7,6 +7,7 @@ from app.processors.cleaner import (
     validate_required_fields,
     normalize_text_fields,
 )
+from app.storage.sqlite_dynamic import DynamicStorage
 
 class DynamicJobMonitor:
     def __init__(self, url: str):
@@ -15,6 +16,8 @@ class DynamicJobMonitor:
             wait_for=".thumbnail",
             headless=True
         )
+
+        self.storage = DynamicStorage()
 
         self.cleaner = DataCleaner(steps=[
             lambda d: remove_duplicates(d, ["title", "price"]),
@@ -96,6 +99,9 @@ class DynamicJobMonitor:
 
         if jobs:
             save_to_csv("dynamic_jobs.csv", jobs)
+
+            self.storage.insert_jobs(jobs)
+
             print(f"Success! Saved {len(jobs)} items to dynamic_jobs.csv")
         
         return jobs
