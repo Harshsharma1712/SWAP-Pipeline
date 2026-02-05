@@ -1,7 +1,12 @@
 from bs4 import BeautifulSoup
 from app.scrapers.dynamic import DynamicScraper
 from app.processors.csv_writer import save_to_csv
-import time
+from app.processors.cleaner import (
+    DataCleaner,
+    remove_duplicates,
+    validate_required_fields,
+    normalize_text_fields,
+)
 
 class DynamicJobMonitor:
     def __init__(self, url: str):
@@ -10,6 +15,13 @@ class DynamicJobMonitor:
             wait_for=".thumbnail",
             headless=True
         )
+
+        self.cleaner = DataCleaner(steps=[
+            lambda d: remove_duplicates(d, ["title", "price"]),
+            lambda d: validate_required_fields(d, ["title", "price"]),
+            lambda d: normalize_text_fields(d, ["title", "price"]),
+        ])
+
 
     def run(self):
         jobs = []
