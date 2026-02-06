@@ -8,9 +8,12 @@ from app.processors.cleaner import (
     normalize_text_fields,
 )
 from app.storage.sqlite_dynamic import DynamicStorage
+from app.detection.change_detector import ChangeDetector
+from app.detection.base_detector import ChangeReport
+from app.notifiers.console_notifier import ConsoleNotifier
 
 class DynamicJobMonitor:
-    def __init__(self, url: str):
+    def __init__(self, url: str, enable_change_detection: bool = True):
         self.scraper = DynamicScraper(
             url,
             wait_for=".thumbnail",
@@ -18,6 +21,15 @@ class DynamicJobMonitor:
         )
 
         self.storage = DynamicStorage()
+        self.source_name = "dynamic_jobs"
+        
+        # Change detection setup
+        self.enable_change_detection = enable_change_detection
+        self.detector = ChangeDetector(
+            key_fields=["title"],  # Unique identifier
+            compare_fields=["title", "price"]  # Fields to track for changes
+        )
+        self.notifier = ConsoleNotifier(use_colors=True, verbose=True)
 
         self.cleaner = DataCleaner(steps=[
             lambda d: remove_duplicates(d, ["title", "price"]),
@@ -98,10 +110,39 @@ class DynamicJobMonitor:
             self.scraper.close()
 
         if jobs:
+            # Change Detection
+            if self.enable_change_detection:
+                # Use storage's built-in snapshot methods (stored in dynamic_data.db)
+                old_data = self.storage.get_latest_snapshot(self.source_name)
+                
+                if old_data is not None:
+                    # Compare with previous data
+                    changes = self.detector.detect(old_data, jobs)
+                    
+                    # Always show the change report
+                    self.notifier.notify(changes, self.source_name)
+                    
+                    if not changes.has_changes:
+                        print("✅ No changes detected. Skipping data save.")
+                        return jobs
+                    
+                    # Update snapshot with new data
+                    self.storage.save_snapshot(self.source_name, jobs)
+                    self.storage.cleanup_old_snapshots(self.source_name, keep_count=10)
+                else:
+                    # First run - create initial snapshot
+                    print("\n" + "=" * 60)
+                    print("📦 FIRST RUN - Initial Data Capture")
+                    print("=" * 60)
+                    print(f"📊 Captured {len(jobs)} items as baseline.")
+                    print("   Next run will compare against this snapshot.")
+                    print("=" * 60 + "\n")
+                    
+                    # Save initial snapshot
+                    self.storage.save_snapshot(self.source_name, jobs)
+
             save_to_csv("dynamic_jobs.csv", jobs)
-
             self.storage.insert_jobs(jobs)
-
             print(f"Success! Saved {len(jobs)} items to dynamic_jobs.csv")
         
         return jobs

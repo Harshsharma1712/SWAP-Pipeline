@@ -1,10 +1,12 @@
 from .base_storage import BaseStorage
+from .snapshot_storage import SnapshotMixin
 from datetime import datetime, timezone
 
-class DynamicStorage(BaseStorage):
+class DynamicStorage(BaseStorage, SnapshotMixin):
     def __init__(self):
         super().__init__("data/dynamic_data.db")
         self._create_tables()
+        self._create_snapshot_table()  # Add snapshot support
 
     def _create_tables(self):
         self.conn.execute("""
@@ -23,3 +25,8 @@ class DynamicStorage(BaseStorage):
         rows = [(j["title"], j["price"], now) for j in jobs]
         self.conn.executemany(query, rows)
         self.conn.commit()
+
+    def get_all_jobs(self):
+        """Retrieve all jobs for change detection comparison."""
+        cursor = self.conn.execute("SELECT title, price FROM dynamic_jobs")
+        return [{"title": row[0], "price": row[1]} for row in cursor.fetchall()]

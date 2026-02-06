@@ -1,10 +1,12 @@
 from .base_storage import BaseStorage
+from .snapshot_storage import SnapshotMixin
 from datetime import datetime, timezone
 
-class StaticStorage(BaseStorage):
+class StaticStorage(BaseStorage, SnapshotMixin):
     def __init__(self):
         super().__init__("data/static_data.db")
         self._create_tables()
+        self._create_snapshot_table()  # Add snapshot support
 
     def _create_tables(self):
         self.conn.execute("""
@@ -23,3 +25,8 @@ class StaticStorage(BaseStorage):
         rows = [(j["title"], j["company"], now) for j in jobs]
         self.conn.executemany(query, rows)
         self.conn.commit()
+
+    def get_all_jobs(self):
+        """Retrieve all jobs for change detection comparison."""
+        cursor = self.conn.execute("SELECT title, company FROM job_snapshots")
+        return [{"title": row[0], "company": row[1]} for row in cursor.fetchall()]
