@@ -9,7 +9,7 @@ from app.processors.cleaner import (
 from app.storage.sqlite_static import StaticStorage
 from app.detection.change_detector import ChangeDetector
 from app.detection.base_detector import ChangeReport
-from app.notifiers.console_notifier import ConsoleNotifier
+from app.notifiers.notification_manager import NotificationManager
 
 class JobMonitor:
     def __init__(self, url: str, enable_change_detection: bool = True):
@@ -23,7 +23,8 @@ class JobMonitor:
             key_fields=["title"],  # Unique identifier
             compare_fields=["title", "company"]  # Fields to track for changes
         )
-        self.notifier = ConsoleNotifier(use_colors=True, verbose=True)
+        # Use NotificationManager for multi-channel notifications
+        self.notification_manager = NotificationManager(include_console=True)
     
         self.cleaner = DataCleaner(steps=[
                 lambda d: remove_duplicates(d, ["title", "company"]),
@@ -54,8 +55,8 @@ class JobMonitor:
                     # Compare with previous data
                     changes = self.detector.detect(old_data, jobs)
                     
-                    # Always show the change report
-                    self.notifier.notify(changes, self.source_name)
+                    # Send notifications to all channels (console, email, telegram)
+                    self.notification_manager.notify_all(changes, self.source_name)
                     
                     if not changes.has_changes:
                         print("✅ No changes detected. Skipping data save.")

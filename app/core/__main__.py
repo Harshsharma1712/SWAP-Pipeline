@@ -11,10 +11,15 @@ def main():
 
     dynamic_monitor = DynamicJobMonitor("https://webscraper.io/test-sites/e-commerce/ajax/computers/laptops")
 
+    phones = DynamicJobMonitor("https://webscraper.io/test-sites/e-commerce/ajax/phones/touch")
+
+    # phones_data = phones.run()
+
     jobs = dynamic_monitor.run()
 
     # jobs = static_monitor.run()
 
+    # logger.info(f"Scraped {len(jobs)} jobs")
     logger.info(f"Scraped {len(jobs)} jobs")
     
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from playwright.sync_api import sync_playwright
 
 class DynamicScraper:
-    def __init__(self, url, wait_for=None, headless=True, timeout=30_000):
+    def __init__(self, url, wait_for=None, headless=True, timeout=50_000):
         self.url = url
         self.wait_for = wait_for
         self.headless = headless
