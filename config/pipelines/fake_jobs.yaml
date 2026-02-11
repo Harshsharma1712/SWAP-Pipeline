@@ -1,0 +1,16 @@
+name: "Fake Jobs"
+enabled: true
+type: static
+url: "https://realpython.github.io/fake-jobs/"
+
+selectors:
+  container: ".card-content"
+  fields:
+    title: ".title"
+    company: ".company"
+
+storage:
+  source_name: "static_jobs"
+
+change_detection: true
+notifications: true

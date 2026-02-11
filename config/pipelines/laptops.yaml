@@ -1,0 +1,24 @@
+name: "Laptops"
+enabled: true
+type: dynamic
+url: "https://webscraper.io/test-sites/e-commerce/ajax/computers/laptops"
+
+browser:
+  wait_for: ".thumbnail"
+  headless: true
+
+pagination:
+  enabled: true
+  next_button: "button.next, a.next"
+
+selectors:
+  container: ".thumbnail"
+  fields:
+    title: ".title"
+    price: ".price"
+
+storage:
+  source_name: "dynamic_laptops"
+
+change_detection: true
+notifications: true

@@ -15,12 +15,12 @@ def main():
 
     # phones_data = phones.run()
 
-    jobs = dynamic_monitor.run()
+    # jobs = dynamic_monitor.run()
 
-    # jobs = static_monitor.run()
+    jobs = phones.run()
 
-    # logger.info(f"Scraped {len(jobs)} jobs")
     logger.info(f"Scraped {len(jobs)} jobs")
+    # logger.info(f"Scraped {len(jobs)} jobs")
     
 if __name__ == "__main__":
     main()
