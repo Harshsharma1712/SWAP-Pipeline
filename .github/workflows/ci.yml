@@ -1,0 +1,41 @@
+name: CI - Validate Pipelines
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+
+      - name: Load pipeline configs
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<EOF
+          from app.pipeline.config_loader import ConfigLoader
+          loader = ConfigLoader("config/pipelines")
+          pipelines = loader.load_all()
+          assert len(pipelines) == 3
+          print("✅ All pipeline configs loaded")
+          EOF
+
+      - name: CI run (safe test)
+        env:
+          PYTHONPATH: .
+          DRY_RUN: true
+        run: |
+          python run_pipeline.py
