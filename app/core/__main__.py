@@ -15,7 +15,7 @@ def main():
 
     # phones_data = phones.run()
 
-    jobs = dynamic_monitor.run()
+    jobs = phones.run()
 
     # jobs = static_monitor.run()
 
